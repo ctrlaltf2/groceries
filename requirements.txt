@@ -2,6 +2,8 @@
 #    uv pip compile pyproject.toml -o requirements.txt
 anyio==4.11.0
     # via httpx
+backoff==2.2.1
+    # via aldi (pyproject.toml)
 certifi==2025.10.5
     # via
     #   curl-cffi

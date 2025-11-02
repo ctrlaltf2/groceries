@@ -5,6 +5,7 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "backoff>=2.2.1",
     "curl-cffi>=0.13.0",
     "duckdb>=1.4.1",
     "fsspec>=2025.10.0",
