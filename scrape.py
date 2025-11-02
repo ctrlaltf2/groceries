@@ -5,6 +5,7 @@
 #     "duckdb",
 #     "fsspec",
 #     "httpx",
+#     "curl_cffi==0.13.0",
 # ]
 # ///
 from datetime import datetime, timezone
