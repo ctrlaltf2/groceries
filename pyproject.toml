@@ -9,4 +9,5 @@ dependencies = [
     "duckdb>=1.4.1",
     "fsspec>=2025.10.0",
     "httpx>=0.28.1",
+    "ruff>=0.14.3",
 ]
