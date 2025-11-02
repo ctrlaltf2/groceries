@@ -1,0 +1,12 @@
+[project]
+name = "aldi"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "curl-cffi>=0.13.0",
+    "duckdb>=1.4.1",
+    "fsspec>=2025.10.0",
+    "httpx>=0.28.1",
+]
