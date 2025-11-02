@@ -52,17 +52,18 @@ max_timeout = 4 * 60 * 60 * 1000 # ms, or 4 hours
 # --- Scraper config
 min_sleep = 7433  # ms
 max_sleep = 10151  # ms
-headers = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:135.0) Gecko/20100101 Firefox/135.0",
-    "Accept": "application/json, text/plain, */*",
-    "Accept-Language": "en-US,en;q=0.5",
-    "Accept-Encoding": "gzip, deflate, br, zstd",
-    "Origin": "https://new.aldi.us",
-    "Sec-GPC": "1",
-    "Connection": "keep-alive",
-    "Sec-Fetch-Dest": "empty",
-    "Sec-Fetch-Mode": "cors",
-    "Sec-Fetch-Site": "same-site",
+headers ={
+    'accept': '*/*',
+    'accept-language': 'en-US',
+    #'origin': 'https://www.aldi.us',
+    'priority': 'u=1, i',
+    'sec-ch-ua': '"Chromium";v="141", "Not?A_Brand";v="8"',
+    'sec-ch-ua-mobile': '?0',
+    'sec-ch-ua-platform': '"Windows"',
+    'sec-fetch-dest': 'empty',
+    'sec-fetch-mode': 'cors',
+    'sec-fetch-site': 'same-site',
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36'
 }
 url = Template(
     "https://api.aldi.us/v3/product-search?currency=USD&q=&limit=$limit&offset=$offset&sort=name_asc&servicePoint=$region-$store"
@@ -115,7 +116,6 @@ with duckdb.connect(output_db_path) as conn:
 
     failures = 0
     while (not end_index) or (current_index < end_index):
-
         max_given_failures = 2**failures
         if max_given_failures > max_timeout:
             # give up at this point
@@ -139,10 +139,11 @@ with duckdb.connect(output_db_path) as conn:
         try:
             response = httpx.get(this_url, headers=headers)
             if response.status_code != 200:
+                print(f'{response.status_code} from {this_url}')
                 failed = True
         except httpx.ConnectTimeout:
+            print('Timed out')
             failed = True
-
 
         # Exp retry last request if error
         if failed:
@@ -159,6 +160,13 @@ with duckdb.connect(output_db_path) as conn:
 
         if end_index is None:
             end_index = int(js["meta"]["pagination"]["totalCount"])
+        else:
+            latest_end_index = int(js["meta"]["pagination"]["totalCount"])
+
+            # Restart if the external db updated while we were paging
+            if latest_end_index != end_index:
+                end_index = None
+                continue
 
         if len(js["data"]) == 0:
             break
