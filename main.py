@@ -1,23 +1,15 @@
-#!/usr/bin/env -S uv run
-# /// script
-# requires-python = "==3.13"
-# dependencies = [
-#     "duckdb",
-#     "fsspec",
-#     "httpx",
-#     "curl_cffi==0.13.0",
-# ]
-# ///
-from datetime import datetime, timezone
-from pathlib import Path
-from string import Template
 import argparse
-import duckdb
-import fsspec
-import httpx
 import json
 import random
 import time
+from datetime import datetime, timezone
+from math import pow
+from pathlib import Path
+from string import Template
+
+import duckdb
+import fsspec
+import httpx
 
 parser = argparse.ArgumentParser(
     prog="aldi-scraper", description="Pull down current prices at a specific ALDI store"
@@ -25,18 +17,23 @@ parser = argparse.ArgumentParser(
 
 # store region, found by choosing a store for pickup near you, and looking at the store code in cookies.
 # An example total store identifier on the West coast might be 479-030, with 479 being the region code
-parser.add_argument(
+_ = parser.add_argument(
     "-r", "--region", type=int, required=True, help="Region number (e.g. 479)"
 )
 # See above. If your specific store doesn't show up in the search,
 # check your physical receipt for the store number.
-parser.add_argument(
+_ = parser.add_argument(
     "-s", "--store", type=int, required=True, help="Store number (e.g. 40)"
 )
-parser.add_argument(
+_ = parser.add_argument(
     "-d", "--db", type=str, required=True, help="Path to output prices database"
 )
 args = parser.parse_args()
+
+# Shut pyright up
+assert isinstance(args.db, str)
+assert isinstance(args.store, int)
+assert isinstance(args.region, int)
 
 output_db_path = Path(args.db)
 
@@ -48,23 +45,23 @@ page_limit = 60
 # ---
 
 # on max timeout, just give up
-max_timeout = 4 * 60 * 60 * 1000 # ms, or 4 hours
+max_timeout = 4 * 60 * 60 * 1000  # ms, or 4 hours
 
 # --- Scraper config
 min_sleep = 7433  # ms
 max_sleep = 10151  # ms
-headers ={
-    'accept': '*/*',
-    'accept-language': 'en-US',
+headers = {
+    "accept": "*/*",
+    "accept-language": "en-US",
     #'origin': 'https://www.aldi.us',
-    'priority': 'u=1, i',
-    'sec-ch-ua': '"Chromium";v="141", "Not?A_Brand";v="8"',
-    'sec-ch-ua-mobile': '?0',
-    'sec-ch-ua-platform': '"Windows"',
-    'sec-fetch-dest': 'empty',
-    'sec-fetch-mode': 'cors',
-    'sec-fetch-site': 'same-site',
-    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36'
+    "priority": "u=1, i",
+    "sec-ch-ua": '"Chromium";v="141", "Not?A_Brand";v="8"',
+    "sec-ch-ua-mobile": "?0",
+    "sec-ch-ua-platform": '"Windows"',
+    "sec-fetch-dest": "empty",
+    "sec-fetch-mode": "cors",
+    "sec-fetch-site": "same-site",
+    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
 }
 url = Template(
     "https://api.aldi.us/v3/product-search?currency=USD&q=&limit=$limit&offset=$offset&sort=name_asc&servicePoint=$region-$store"
@@ -76,9 +73,10 @@ current_index = 0
 
 
 # track ephemeral failures and do exponential backoff random retry
-def gen_time(failures: int, min_sleep: float, max_sleep: float) -> float:
+def gen_time(failures: int, min_sleep: int, max_sleep: int) -> float:
     sleep_time = 0.0
-    for i in range(2**failures):
+    n_samples: int = round(pow(2, failures))
+    for i in range(n_samples):
         sleep_time += random.randrange(min_sleep, max_sleep) / 1000
 
     return sleep_time
@@ -140,10 +138,10 @@ with duckdb.connect(output_db_path) as conn:
         try:
             response = httpx.get(this_url, headers=headers)
             if response.status_code != 200:
-                print(f'{response.status_code} from {this_url}')
+                print(f"{response.status_code} from {this_url}")
                 failed = True
         except httpx.ConnectTimeout:
-            print('Timed out')
+            print("Timed out")
             failed = True
 
         # Exp retry last request if error
