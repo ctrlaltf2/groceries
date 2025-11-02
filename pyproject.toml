@@ -11,5 +11,6 @@ dependencies = [
     "fsspec>=2025.10.0",
     "httpx>=0.28.1",
     "pydantic>=2.12.3",
+    "pyzstd>=0.18.0",
     "ruff>=0.14.3",
 ]
