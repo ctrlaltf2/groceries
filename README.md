@@ -1,10 +1,20 @@
-# Aldi Price Scraper
-Simple Aldi price scraper to allow for open and democratic analysis of everyday grocery price trends over time.
+# Grocery Price Scrapers
+Simple grocery price scraper to allow for open and democratic analysis of everyday grocery price trends over time.
 
 # Usage
-This is a self-contained [uv](https://github.com/astral-sh/uv) script, so have uv installed then simply run the script from the shell.
+ - Install deps: `uv pip install -r requirements.txt`
+ - Run the thing: `uv run scrape.py -r $REGION -s $STORE -o /tmp/aldi-test -H $HOSTNAME -R $SEARCH_API`
+     - Your `$HOSTNAME` and `$SEARCH_API` can be easily found on the product pickup page.
+     - `$REGION` is probably not actually a region, but it is a value locally relevant to your nearby stores. Find your store on the pickup website, or one near it, and set it to the store you're shopping. Check your cookies or localstorage and you should see an ID somewhere like 499-030. 499 would be the region.
+     - `$STORE` is easier, either use above or check your receipt for the store #.
 
 # Roadmap
+ - [x] initial implementation
+ - [x] mass rewrite to store raw responses to handle schema changes and more (medallion architecture)
+ - [ ] load scraped data json.zst and validate their data models
+ - [ ] design a usable type 2 SCD schema for storing everything
+ - [ ] write script to load raw validated data into db, handling arbitrarily new data points beung added even out of order
+ - [ ] attempt to migrate old schema over
  - [ ] Automated publishing of historical data for a store representative of median US COL
  - [ ] Price diffs
  - [ ] Unit prices (requires mini parser)
