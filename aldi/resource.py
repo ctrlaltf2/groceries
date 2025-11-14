@@ -449,7 +449,12 @@ class GrocerySearchAPI:
 
             # start the crawl
             for flter in all_possible_filters:
+
                 if flter.id() not in filters_exhausted:
+                    if len(skus_seen) >= .998*n_products and flter.n_items < 30:
+                        # giveup, might miss some but oh well
+                        return
+
                     print(f'filter {flter.id()} yielding {flter.n_items}')
                     dual_mode_necessary = (flter.n_items >= self.max_page_items)
 
