@@ -61,16 +61,16 @@ if __name__ == "__main__":
 
     api = GrocerySearchAPI(args.api_host, args.api_root)
 
-    this_job_id = uuid4()
+    this_job_id = str(uuid4())
     scrape_start = datetime.now(timezone.utc)
     scrape_meta = {
-        "id": str(this_job_id),
+        "id": this_job_id,
         "region": args.region,
         "store": args.store,
         "start": scrape_start.isoformat(),
     }
 
-    job_data_path =Path(args.output_path) / str(this_job_id)
+    job_data_path = Path(args.output_path) / this_job_id[0:2] / this_job_id[2:4] / this_job_id
     job_data_path.mkdir(parents=True, exist_ok=True)
 
     write_json_zstd(scrape_meta, job_data_path / "meta.json.zst")
